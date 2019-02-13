@@ -20,9 +20,34 @@ set -euo pipefail
 pushd `dirname $0`
 unzip $1 boot.img
 ./unpackimg.sh --nosudo boot.img
-sed -i -e 's/ro.secure=.*/ro.secure=0/' ramdisk/default.prop
-sed -i -e 's/ro.adb.secure=.*/ro.adb.secure=0/' ramdisk/default.prop
-sed -i -e 's/ro.debuggable=.*/ro.debuggable=1/' ramdisk/default.prop
+
+if [ -L ramdisk/default.prop ];then
+  # On Xioami devices that's a link to /system/etc/prop.default
+  rm ramdisk/default.prop
+  cat <<EOF > ramdisk/default.prop
+#
+# ADDITIONAL_DEFAULT_PROPERTIES
+#
+ro.miui.has_cust_partition=true
+ro.sys.sdcardfs=1
+ro.secure=0
+security.perf_harden=1
+ro.adb.secure=0
+ro.allow.mock.location=0
+ro.debuggable=1
+#
+# BOOTIMAGE_BUILD_PROPERTIES
+#
+ro.bootimage.build.date=Thu Jul 26 00:51:13 CST 2018
+ro.bootimage.build.date.utc=1532537473
+persist.sys.usb.config=mtp,adb
+EOF
+else
+  sed -i -e 's/ro.secure=.*/ro.secure=0/' ramdisk/default.prop
+  sed -i -e 's/ro.adb.secure=.*/ro.adb.secure=0/' ramdisk/default.prop
+  sed -i -e 's/ro.debuggable=.*/ro.debuggable=1/' ramdisk/default.prop
+fi
+
 ./repackimg.sh
 mv image-new.img boot.img
 popd
