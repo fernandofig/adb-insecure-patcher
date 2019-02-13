@@ -18,7 +18,6 @@
 set -euo pipefail
 
 pushd `dirname $0`
-unzip $1 boot.img
 ./unpackimg.sh --nosudo boot.img
 
 if [ -L ramdisk/default.prop ];then
